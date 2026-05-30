@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhotoVault</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: rgba(20, 30, 60, 0.65);
+      --panel-strong: rgba(255, 255, 255, 0.11);
+      --border: rgba(255, 255, 255, 0.18);
+      --accent: #60d1ff;
+      --text: #e8ecff;
+      --text-muted: #aac0db;
+      --danger: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Inter, system-ui, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, rgba(96, 209, 255, 0.16), transparent 30%),
+        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.08), transparent 25%),
+        linear-gradient(180deg, #071014 0%, #0d172e 100%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      width: min(1200px, 100%);
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+    }
+
+    .sidebar, .panel {
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      background: var(--panel);
+      backdrop-filter: blur(22px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.23);
+    }
+
+    .sidebar {
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      font-size: 1.75rem;
+      letter-spacing: 0.05em;
+    }
+
+    .brand p {
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .tabs {
+      display: grid;
+      gap: 12px;
+    }
+
+    .tabs button {
+      border: 1px solid transparent;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      padding: 16px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .tabs button.active,
+    .tabs button:hover {
+      background: rgba(96, 209, 255, 0.14);
+      border-color: rgba(96, 209, 255, 0.35);
+    }
+
+    .search-box {
+      display: grid;
+      gap: 12px;
+    }
+
+    .search-box label,
+    .upload-box label {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .search-box input,
+    .upload-box input,
+    .upload-box textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      padding: 14px 16px;
+      outline: none;
+    }
+
+    .search-box input::placeholder,
+    .upload-box input::placeholder {
+      color: rgba(235, 240, 255, 0.55);
+    }
+
+    .upload-box {
+      display: grid;
+      gap: 14px;
+    }
+
+    .upload-box .row {
+      display: grid;
+      gap: 12px;
+    }
+
+    .upload-box input[type="file"] {
+      padding: 12px;
+    }
+
+    .upload-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .upload-actions button {
+      border: none;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #60d1ff, #2b9bff);
+      color: #071014;
+      padding: 14px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s ease;
+    }
+
+    .upload-actions button:hover {
+      transform: translateY(-1px);
+    }
+
+    .panel {
+      padding: 32px;
+      display: grid;
+      gap: 24px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .panel-header .summary {
+      display: grid;
+      gap: 6px;
+    }
+
+    .panel-header h2 {
+      font-size: 1.6rem;
+    }
+
+    .panel-header .status {
+      color: var(--text-muted);
+    }
+
+    .gallery {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .card {
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 24px;
+      background: rgba(255,255,255,0.05);
+      overflow: hidden;
+      display: grid;
+      gap: 12px;
+      min-height: 240px;
+    }
+
+    .card img,
+    .card video,
+    .card .file-preview {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      min-height: 180px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .file-preview {
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .card-content {
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .card-content strong {
+      display: block;
+      color: #fff;
+      font-size: 1rem;
+      word-break: break-word;
+    }
+
+    .card-content .card-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .card-content .card-actions a,
+    .card-content .card-actions button {
+      border: none;
+      border-radius: 14px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      text-decoration: none;
+      color: #e8ecff;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .card-content .card-actions a:hover,
+    .card-content .card-actions button:hover {
+      background: rgba(96,209,255,0.18);
+    }
+
+    .card-content .card-actions button.delete {
+      background: rgba(255,107,107,0.18);
+    }
+
+    .card-content .card-actions button.delete:hover {
+      background: rgba(255,107,107,0.28);
+    }
+
+    .hint {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .hide {
+      display: none !important;
+    }
+
+    .footer-note {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>PhotoVault</h1>
+        <p>Quản lý ảnh, video và PDF với Tab Xem chung / Riêng tư, tìm kiếm nhanh và bảo mật đơn giản.</p>
+      </div>
+
+      <div class="tabs">
+        <button id="commonTabBtn" class="active" type="button" onclick="switchTab('common')">Xem chung</button>
+        <button id="privateTabBtn" type="button" onclick="switchTab('private')">Riêng tư</button>
+      </div>
+
+      <div class="search-box">
+        <label for="searchInput">Tìm kiếm</label>
+        <input id="searchInput" type="search" placeholder="Tìm theo tiêu đề..." oninput="renderPhotos()" />
+      </div>
+
+      <div class="upload-box">
+        <label for="titleInput">Tiêu đề tải lên</label>
+        <input id="titleInput" type="text" placeholder="Nhập tiêu đề file" />
+        <label for="fileInput">Chọn ảnh/video/pdf</label>
+        <input id="fileInput" type="file" accept="image/*,video/*,application/pdf" />
+        <div class="row">
+          <label><input id="privateFlag" type="checkbox" /> Đánh dấu là Riêng tư</label>
+        </div>
+        <div class="upload-actions">
+          <button type="button" onclick="uploadFile()">Tải lên</button>
+          <span class="hint">Mật khẩu Riêng tư: 123</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="panel">
+      <div class="panel-header">
+        <div class="summary">
+          <h2 id="panelTitle">Thư viện Xem chung</h2>
+          <div class="status" id="statusText">Đang tải dữ liệu...</div>
+        </div>
+      </div>
+
+      <div class="gallery" id="photoGrid"></div>
+
+      <div class="footer-note">Đăng tải file mới để lưu trữ vĩnh viễn lên Cloudinary.</div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+    let currentTab = 'common';
+    let photos = [];
+    let privateUnlocked = false;
+
+    async function fetchPhotos() {
+      setStatus('Đang tải danh sách file...');
+      try {
+        const resp = await fetch(`${API_BASE}/get_photos_api`);
+        const result = await resp.json();
+        if (!result.success) throw new Error(result.message || 'Lỗi khi lấy dữ liệu');
+        photos = result.data || [];
+        renderPhotos();
+        setStatus(`Tìm thấy ${photos.length} file trong PhotoVault`);
+      } catch (error) {
+        setStatus('Lỗi tải dữ liệu: ' + error.message);
+        photos = [];
+        renderPhotos();
+      }
+    }
+
+    function sanitizeTitle(raw) {
+      return raw.trim();
+    }
+
+    function setStatus(text) {
+      document.getElementById('statusText').textContent = text;
+    }
+
+    function switchTab(target) {
+      if (target === 'private' && !privateUnlocked) {
+        const password = prompt('Nhập mật khẩu để mở Tab Riêng tư:');
+        if (password !== '123') {
+          return alert('Mật khẩu không đúng.');
+        }
+        privateUnlocked = true;
+      }
+
+      currentTab = target;
+      document.getElementById('commonTabBtn').classList.toggle('active', target === 'common');
+      document.getElementById('privateTabBtn').classList.toggle('active', target === 'private');
+      document.getElementById('panelTitle').textContent = target === 'common' ? 'Thư viện Xem chung' : 'Thư viện Riêng tư';
+      renderPhotos();
+    }
+
+    function getFilteredPhotos() {
+      const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+      return photos.filter((item) => {
+        const title = item.title.toLowerCase();
+        const isPrivate = title.startsWith('__private__');
+        const allowed = currentTab === 'private' ? isPrivate : !isPrivate;
+        return allowed && title.replace(/^__private__/, '').includes(searchTerm);
+      });
+    }
+
+    function formatTitle(title) {
+      return title.replace(/^__private__/, '').replace(/^__PRIVATE__/, '');
+    }
+
+    async function renderPhotos() {
+      const grid = document.getElementById('photoGrid');
+      grid.innerHTML = '';
+      const list = getFilteredPhotos();
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="file-preview">Không có file phù hợp ở tab này.</div>`;
+        return;
+      }
+
+      list.forEach((item) => {
+        const card = document.createElement('article');
+        card.className = 'card';
+
+        const isImage = item.image_url.match(/\.(jpeg|jpg|png|gif|webp|bmp|svg)(\?|$)/i);
+        const isVideo = item.image_url.match(/\.(mp4|webm|ogg|mov|m4v)(\?|$)/i);
+        const isPdf = item.image_url.match(/\.(pdf)(\?|$)/i);
+
+        if (isImage) {
+          const img = document.createElement('img');
+          img.src = item.image_url;
+          img.alt = formatTitle(item.title);
+          card.appendChild(img);
+        } else if (isVideo) {
+          const video = document.createElement('video');
+          video.src = item.image_url;
+          video.controls = true;
+          video.preload = 'metadata';
+          card.appendChild(video);
+        } else {
+          const preview = document.createElement('div');
+          preview.className = 'file-preview';
+          preview.innerHTML = `<strong>File</strong><br>${formatTitle(item.title)}<br><small>${item.image_url.split('.').pop().toUpperCase()}</small>`;
+          card.appendChild(preview);
+        }
+
+        const content = document.createElement('div');
+        content.className = 'card-content';
+        content.innerHTML = `
+          <strong>${formatTitle(item.title)}</strong>
+          <div class="card-actions">
+            <a href="${item.image_url}" target="_blank" rel="noreferrer">Mở</a>
+            <button class="delete" type="button" onclick="deletePhoto('${encodeURIComponent(item.image_url)}')">Xóa</button>
+          </div>
+        `;
+        card.appendChild(content);
+        grid.appendChild(card);
+      });
+    }
+
+    async function uploadFile() {
+      const titleEl = document.getElementById('titleInput');
+      const fileEl = document.getElementById('fileInput');
+      const privateFlag = document.getElementById('privateFlag').checked;
+      const file = fileEl.files[0];
+
+      if (!file) {
+        return alert('Vui lòng chọn file để tải lên.');
+      }
+
+      let title = sanitizeTitle(titleEl.value || file.name || 'untitled');
+      if (privateFlag && !title.startsWith('__PRIVATE__') && !title.startsWith('__private__')) {
+        title = `__PRIVATE__${title}`;
+      }
+
+      const form = new FormData();
+      form.append('title', title);
+      form.append('file', file);
+
+      setStatus('Đang tải file lên Cloudinary...');
+      try {
+        const resp = await fetch(`${API_BASE}/upload_api`, {
+          method: 'POST',
+          body: form,
+        });
+
+        const result = await resp.json();
+        if (!result.success) throw new Error(result.message || 'Upload thất bại');
+        setStatus('Tải lên thành công: ' + result.data.image_url);
+        titleEl.value = '';
+        fileEl.value = '';
+        document.getElementById('privateFlag').checked = false;
+        await fetchPhotos();
+      } catch (error) {
+        alert('Không thể tải lên: ' + error.message);
+        setStatus('Lỗi upload: ' + error.message);
+      }
+    }
+
+    async function deletePhoto(encodedUrl) {
+      const imageUrl = decodeURIComponent(encodedUrl);
+      if (!confirm('Bạn có chắc muốn xóa file này không?')) return;
+      setStatus('Đang xóa file...');
+      try {
+        const resp = await fetch(`${API_BASE}/delete_api`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_url: imageUrl }),
+        });
+        const result = await resp.json();
+        if (!result.success) throw new Error(result.message || 'Xóa thất bại');
+        setStatus('Xóa thành công');
+        await fetchPhotos();
+      } catch (error) {
+        alert('Không thể xóa file: ' + error.message);
+        setStatus('Lỗi xóa: ' + error.message);
+      }
+    }
+
+    window.addEventListener('load', () => {
+      fetchPhotos();
+    });
+  </script>
+</body>
+</html>
